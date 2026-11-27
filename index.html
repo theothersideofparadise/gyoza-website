@@ -54,6 +54,25 @@
   @keyframes toastIn { from { opacity: 0; transform: translateY(-12px) } to { opacity: 1; transform: none } }
   .toast { animation: toastIn .3s ease; }
   body.lock { overflow: hidden; }
+  .booking-fab {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 12px 20px;
+    border: 1px solid #fffaf2;
+    border-radius: 9999px;
+    background: #c46216;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 6px 20px #2b1a0f40;
+  }
+  .booking-fab:hover { background: #4a2e1a; }
+  .booking-fab:focus-visible { outline: 3px solid #2b1a0f; outline-offset: 4px; }
   /* 人來人往 */
   .walker { position: absolute; left: 0; will-change: transform; animation: walkAcross linear infinite; }
   @keyframes walkAcross { from { transform: translateX(-90px); } to { transform: translateX(calc(100vw + 90px)); } }
@@ -332,6 +351,14 @@
 </section>
 
 </main>
+
+<!-- Floating appointment link -->
+<a class="booking-fab"
+   href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ14TluNZ4iCjshxfBh5CfhrxpvjjZgcYlLdKB0-OY8MmG-2WG6Xiu-g1213U_xwvjImCFXXXc97"
+   target="_blank" rel="noopener noreferrer" aria-label="立即預約（在新分頁開啟 Google 預約頁面）">
+  <i data-lucide="calendar-days" class="h-5 w-5" aria-hidden="true"></i>
+  <span>立即預約</span>
+</a>
 
 <!-- ===================== FOOTER ===================== -->
 <footer id="contact" class="bg-wood-900 text-cream-100">
