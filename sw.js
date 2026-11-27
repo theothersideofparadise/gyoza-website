@@ -1,7 +1,7 @@
 /* Versioned local app shell. Orders and admin data are never cached. */
 const PREFIX = 'jianfu-gyoza-';
-const CACHE = PREFIX + 'v7';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './assets/site.css', './assets/order-config.js?v=10', './assets/order-client.js?v=10',
+const CACHE = PREFIX + 'v8';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './assets/site.css', './assets/order-config.js?v=11', './assets/order-client.js?v=11',
   './assets/vendor/lucide.min.js', './assets/vendor/three.min.js', './assets/street-3d.js?v=6',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'];

@@ -1,6 +1,5 @@
-/* Public routing only. Switch to 'gas' after a real deployment passes the checks in gas/README.md.
-   The /exec URL is public; NEVER place Google OAuth tokens or ADMIN_KEY in this file. */
+/* Public GAS deployment URL only. Never place ADMIN_KEY or Google OAuth tokens here. */
 window.JIANFU_ORDER_CONFIG = {
-  provider: 'supabase',
-  gasUrl: ''
+  "provider": "gas",
+  "gasUrl": "https://script.google.com/macros/s/AKfycbyjeRIXanTWRhSG-nWEZOeFzV9RtqyvZBu3zow4r7G3517UxiLVjFokSWSHcVud1u3oKQ/exec"
 };

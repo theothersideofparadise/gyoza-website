@@ -81,8 +81,8 @@
 </head>
 <body class="antialiased">
 
-<script src="assets/order-config.js?v=10"></script>
-<script src="assets/order-client.js?v=10"></script>
+<script src="assets/order-config.js?v=11"></script>
+<script src="assets/order-client.js?v=11"></script>
 
 <!-- ===================== HEADER ===================== -->
 <header id="header" class="fixed inset-x-0 top-0 z-40 transition-colors duration-300">
@@ -512,7 +512,7 @@
 /* ============================================================
    DATA
    ============================================================ */
-/* 訂單後端由 assets/order-config.js 選擇；GAS 部署驗證前保留既有 Supabase。 */
+/* 訂單後端由 assets/order-config.js 選擇；目前已設定正式 GAS；Supabase 轉接保留供必要時回復。 */
 const ORDER_API = {
   create: 'https://wbccrjibekqsygappslb.supabase.co/functions/v1/super-worker', // create-order
   track:  'https://wbccrjibekqsygappslb.supabase.co/functions/v1/get-order'

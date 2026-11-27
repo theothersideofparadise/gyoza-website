@@ -26,3 +26,14 @@
 依 [GAS 部署步驟](../gas/README.md)，在試算表綁定 Apps Script，貼入程式、執行 `setupAndVerify` 並完成 Google 授權，再發布「以我執行／所有人可存取」的網頁應用程式。回傳 `/exec` URL 與自測結果後，才能設定前台、實測跨網域真實送單／讀回及確認切換。
 
 目前沒有 GAS script ID、部署 ID 或可驗證 URL。正式 Pages 網域亦受環境網路政策限制，未宣稱實際部署回應已驗證。
+
+
+## 正式部署接線更新（2026-11-27）
+
+協作端已使用本人 Brave 帳號完成 Google 授權，發布 GAS version 1，明確允許所有人呼叫 API。執行成功的是 `setup`，不是 `setupAndVerify`。已取得正式 /exec URL 及綁定專案，前台 `provider` 改為 gas、設定檔與轉接程式 URL 升級 v11、PWA 快取升級 v8。
+
+雲端以保留既有代理設定的 curl 請求 health，CONNECT 被網路政策以 403 拒絕（HTTP 狀態 000，沒有收到 API 回應）。補充網路權限申請回覆「The confirmation did not complete. No settings changed.」。未送出任何真實 POST；截至讀回時「訂單」A1:Q5 仍只有標題。
+
+已準備明確標示非實際出餐的固定測試請求，requestId `b3493d07-7322-49a4-912d-cf53c804e1a2`，s1 一份、Email 空白，預期 NT$85。只沿用此 ID 執行驗收，避免後續協作重複建單。`scripts/live-checkout.cjs` 可在獲准連線的環境驗證 health、正式網站設定、建立／同 ID 重送與查單；雲端並未執行成功，不記為已驗收。
+
+本次已重跑單元測試、模擬 GAS 結帳、手機／桌面離線與 PWA 檢查；真實訂單編號、防重送、查單及 Sheet 寫入驗收仍待獲准網路執行。

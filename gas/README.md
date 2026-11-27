@@ -1,6 +1,14 @@
 # 任務十：Google Sheet + GAS 結帳
 
-目前狀態：試算表及程式已備妥，**尚未取得 GAS 部署網址、尚未啟用正式 GAS 結帳**。前台仍使用原 Supabase，不會在沒有後端時宣稱下單成功。
+目前狀態：本人已授權並發布 GAS version 1，且成功執行 `setup`（未執行 `setupAndVerify`）。前台已設定正式 GAS 網址。雲端環境網路政策拒絕 API 及正式網站網域，故**尚未驗證正式網站抓到新版或實際寫入／防重送／查單**。
+
+- [正式 API](https://script.google.com/macros/s/AKfycbyjeRIXanTWRhSG-nWEZOeFzV9RtqyvZBu3zow4r7G3517UxiLVjFokSWSHcVud1u3oKQ/exec)
+- [綁定 Apps Script 專案](https://script.google.com/u/0/home/projects/1cnWb4sPH6jeUZ7g9Dan54TOx6oAz6KqpMXCqZjh4r9F07gXb4h5XkPgv/edit)
+- 已準備固定測試請求 `docs/tasks-10-live-request.json`，無 Email、備註為「任務十驗收測試，非實際出餐」。雲端尚未送出此請求。
+
+可在獲准連線的環境執行 `LIVE_CHECKOUT_TEST=1 node scripts/live-checkout.cjs`。此命令先驗證 health 與正式網站設定，再使用同一 requestId 建單、重送與查單；不要修改 requestId 重跑，避免建立多筆邏輯訂單。仍需另外在私人 Sheet 讀回同一訂單與明細。
+
+以下為部署／重新部署參考；目前不需要再重跑初始化或新增第二個部署。
 
 ## 唯一需要本人完成的環節：Google 帳號授權及發布 GAS
 
@@ -52,4 +60,4 @@ Email 通知沿用現有功能，有填顧客 Email 才寄；店家通知信箱�
 
 ## 驗證紀錄的界線
 
-已透過 Google Sheets 連接器實際建立並讀回欄位、商品與時區；尚無 GAS script ID、部署 ID 或 `/exec` 網址，因此 **尚未實測 GAS 寫單至真實 Sheet 或網站跨網域送單**。本機 Node 測試與 Playwright 模擬 GAS 只證明程式契約，不能宣稱正式串接完成。
+已透過 Google Sheets 連接器建立並讀回欄位、商品與時區；現已取得本人發布的正式 GAS URL，且前台設定已改為 GAS。但雲端 API 健康檢查遭網路代理拒絕（CONNECT 403，未到達 Google），網路授權申請未完成，因此 **尚未實測 GAS 寫單至真實 Sheet 或網站跨網域送單**。不要把部署成功、setup 成功或本機模擬測試視為正式串接驗收完成。

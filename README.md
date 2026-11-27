@@ -6,9 +6,11 @@
 
 [GitHub Pages](https://theothersideofparadise.github.io/gyoza-website/)。本環境網路政策禁止存取此網域，未直接驗證正式 HTTP 部署。
 
-目前 `assets/order-config.js` 仍設定 `provider: 'supabase'`，沿用 Supabase Edge Functions。**任務十的 Google Sheet 與 GAS 程式已備妥，尚待 Google 帳號本人發布 `/exec` 網址及實測，再切換 GAS。** 不會同時送往兩個後端。
+`assets/order-config.js` 已設定 `provider: 'gas'` 及本人發布的正式 `/exec` URL。授權的協作端回報已成功執行 `setup` 並發布 version 1；**不是執行 `setupAndVerify`**。
 
-完整部署及驗收流程請看 [gas/README.md](gas/README.md)。[任務十試算表](https://docs.google.com/spreadsheets/d/1y2nbETPg9Xk-Xf9b_2cX7HbM59yeIGMk4lnrdCKQpR0/edit) 已建立 3 個分頁及 19 項商品；不是已上線的 GAS 接單證明。
+雲端環境仍禁止存取 script.google.com 及正式 Pages 網域，追加網路授權未完成。因此目前只確認原始碼設定與 main 推送，**尚未由此環境確認正式網頁取得新版或實測 GAS 真實寫單／防重送／查單**。Supabase 轉接保留供回復，但目前設定不會同時送到兩個後端。
+
+[部署與驗收流程](gas/README.md)｜[試算表](https://docs.google.com/spreadsheets/d/1y2nbETPg9Xk-Xf9b_2cX7HbM59yeIGMk4lnrdCKQpR0/edit)。後續正式驗收只使用 `docs/tasks-10-live-request.json` 中的固定 requestId，避免跨協作端重複建測試單。
 
 ## 檔案
 

@@ -1,0 +1,16 @@
+{
+  "requestId": "b3493d07-7322-49a4-912d-cf53c804e1a2",
+  "mode": "take",
+  "name": "課程驗收測試",
+  "phone": "0900000000",
+  "email": "",
+  "store": "flag",
+  "address": "",
+  "note": "任務十驗收測試，非實際出餐",
+  "items": [
+    {
+      "id": "s1",
+      "qty": 1
+    }
+  ]
+}
