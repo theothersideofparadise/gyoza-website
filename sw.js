@@ -1,33 +1,39 @@
-/* 煎福 PWA Service Worker：App Shell 快取 + 離線備援 */
-const CACHE = 'jianfu-v4';
-const SHELL = ['./', './index.html', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+/* Versioned local app shell. Orders and admin data are never cached. */
+const PREFIX = 'jianfu-gyoza-';
+const CACHE = PREFIX + 'v5';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './assets/site.css',
+  './assets/vendor/lucide.min.js', './assets/vendor/three.min.js', './assets/street-3d.js',
+  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png', './icons/favicon-32.png'];
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
-
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys
+    .filter(key => (key.startsWith(PREFIX) && key !== CACHE) || key === 'jianfu-v4')
+    .map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
-
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  // 頁面：網路優先，離線時回退快取
+self.addEventListener('fetch', event => {
+  const req = event.request, url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  const base = new URL('./', self.location.href);
+  const shellUrls = SHELL.map(path => new URL(path, base).href);
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => { caches.open(CACHE).then(c => c.put(req, res.clone())); return res; })
-      .catch(() => caches.match(req).then(h => h || caches.match('./index.html'))));
+    // Do not serve the customer shell for the admin page or unknown paths.
+    if (![base.pathname, base.pathname + 'index.html'].includes(url.pathname)) return;
+    event.respondWith(fetch(req).then(res => {
+      if (res.ok) {
+        const copy = res.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
+      }
+      return res;
+    }).catch(() => caches.open(CACHE).then(cache => cache.match(new URL('index.html', base).href))));
     return;
   }
-  // 其他資源（CDN、圖片、字型）：快取優先，同時背景更新
-  e.respondWith(caches.match(req).then(hit => {
-    const net = fetch(req).then(res => {
-      if (res && (res.ok || res.type === 'opaque')) caches.open(CACHE).then(c => c.put(req, res.clone()));
-      return res;
-    }).catch(() => hit);
-    return hit || net;
-  }));
+  if (!shellUrls.includes(url.href)) return;
+  event.respondWith(caches.open(CACHE).then(cache => cache.match(req)).then(hit => hit || fetch(req).then(res => {
+    if (res.ok) {
+      const copy = res.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
+    }
+    return res;
+  })));
 });

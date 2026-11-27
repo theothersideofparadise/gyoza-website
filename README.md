@@ -106,10 +106,32 @@ python -m http.server 8080
 
 ## 圖片與授權
 
-- 菜單與主視覺圖片來自 [Unsplash](https://unsplash.com)（依 Unsplash License 使用），示範用途；正式上線請換成自家拍攝的照片。
-- PWA 圖示由 Unsplash 的鍋貼（水餃）照片加工而成。
+- 菜單與部分圖片來自 [Unsplash](https://unsplash.com)（依 Unsplash License 使用），示範用途；正式上線請換成自家拍攝的照片。
+- PWA 圖示由 image_gen 影像工具於 2026-11-27 生成寫實鍋貼 PNG，原圖保留於 `icons/gyoza-generated-source.png`，另輸出標準、maskable 與 Apple touch 圖示。
 - 店名「煎福」、地址、電話、價格皆為虛構的示範資料。
 
 ## 技術
 
 Tailwind CSS (CDN) · Lucide Icons (CDN) · Vanilla JS · Google Apps Script · Service Worker
+
+
+## 任務五至九（2026-11-27）
+
+- 首頁海報：使用教材指定的 postimg 網址；外部海報與餐點照片需要連線，離線時保留底色及替代文字。
+- 2D 進店動畫里程碑：Git 標籤 `milestone/task-7-2d`，可獨立檢查任務七。
+- 3D：本地 Three.js WebGL 店面與行人，含進店路徑；無 WebGL 時保留 2D。減少動態偏好顯示靜態場景，離開可視區或切換分頁會暫停。
+- PWA：本地 CSS、Lucide、Three.js、圖示與 app shell 可離線載入。訂單 API 與後台不進入快取，送出訂單仍需要網路。
+- 影像來源與驗收限制詳見 [驗收紀錄](docs/tasks-5-9-verification.md)。
+
+### 重建樣式與瀏覽器驗證
+
+```bash
+npm ci
+npm run build:css
+python -m http.server 3000
+# 另一個終端機；先以 npx playwright install chromium 安裝測試瀏覽器
+npm run test:smoke
+# 使用系統 Chromium 時：CHROMIUM_PATH=/usr/bin/chromium npm run test:smoke
+```
+
+手機請在正式 HTTPS 網站操作：iPhone 用 Safari「分享 → 加入主畫面」；Android 用 Chrome 選單「安裝應用程式／加入主畫面」。實機安裝與主畫面圖示需使用者親自確認。
