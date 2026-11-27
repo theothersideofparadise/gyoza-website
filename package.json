@@ -5,7 +5,9 @@
     "build:css": "tailwindcss -c tailwind.config.cjs -i styles/input.css -o assets/site.css --minify",
     "test:smoke": "node scripts/smoke.cjs",
     "test:motion": "node scripts/motion.cjs",
-    "test:pwa": "node scripts/installability.cjs"
+    "test:pwa": "node scripts/installability.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:checkout": "node scripts/checkout.cjs"
   },
   "devDependencies": {
     "tailwindcss": "3.4.17",

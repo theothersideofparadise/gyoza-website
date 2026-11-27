@@ -81,6 +81,9 @@
 </head>
 <body class="antialiased">
 
+<script src="assets/order-config.js?v=10"></script>
+<script src="assets/order-client.js?v=10"></script>
+
 <!-- ===================== HEADER ===================== -->
 <header id="header" class="fixed inset-x-0 top-0 z-40 transition-colors duration-300">
   <div class="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -509,7 +512,7 @@
 /* ============================================================
    DATA
    ============================================================ */
-/* 訂單後端：Supabase Edge Functions（舊的 Google Apps Script 原始碼保留在 gas/Code.gs 供參考，網站已不再呼叫） */
+/* 訂單後端由 assets/order-config.js 選擇；GAS 部署驗證前保留既有 Supabase。 */
 const ORDER_API = {
   create: 'https://wbccrjibekqsygappslb.supabase.co/functions/v1/super-worker', // create-order
   track:  'https://wbccrjibekqsygappslb.supabase.co/functions/v1/get-order'
@@ -772,29 +775,13 @@ form.addEventListener('submit', e => {
   submitOrder(m);
 });
 
-/* 呼叫 Supabase Edge Function。HTTP 錯誤或回應 ok 不是 true 都拋出錯誤(e.status:HTTP 狀態碼;e.network:連線失敗) */
+/* GAS 使用可讀的 text/plain POST；不使用 no-cors，避免把 opaque 回應誤當成功。 */
+const orderClient = JianfuOrderApi.createClient({config:window.JIANFU_ORDER_CONFIG,endpoints:ORDER_API,anonKey:SUPABASE_ANON_KEY});
 async function callOrderApi(url, body) {
-  if (!SUPABASE_ANON_KEY) throw new Error('網站尚未設定訂單服務，請聯絡店家');
-  let r;
-  try {
-    r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
-      body: JSON.stringify(body)
-    });
-  } catch (_) {
-    const e = new Error('network'); e.network = true; throw e;
-  }
-  let res = null;
-  try { res = await r.json(); } catch (_) {}
-  if (r.ok && res && res.ok === true) return res;
-  let msg = res && typeof res.error === 'string' && res.error ? res.error : '';
-  if (r.status === 401 || r.status === 403) msg = '訂單服務授權失敗，請聯絡店家';
-  const e = new Error(msg || (r.ok ? '伺服器回應格式不正確' : `伺服器錯誤（HTTP ${r.status}），請稍後再試`));
-  e.status = r.status; throw e;
+  return orderClient.send(url === ORDER_API.track ? 'track' : 'create', body);
 }
 
-/* 送出訂單到 Edge Function(create-order)→ Supabase。金額與訂單編號一律以後端回傳為準 */
+/* 透過設定的後端送單。金額與訂單編號一律以後端確認回傳為準。 */
 let submitting = false;
 async function submitOrder(m) {
   if (submitting) return;
@@ -822,7 +809,7 @@ async function submitOrder(m) {
   } catch (e) {
     // 失敗時保留購物車與表單,也不自動重送(避免重複訂單)
     err.textContent = e.network
-      ? '網路異常，無法確認訂單是否已送出。請先用「訂單查詢」或聯絡門市確認，避免重複下單。'
+      ? (window.JIANFU_ORDER_CONFIG.provider === 'gas' ? '無法確認訂單是否已送出。請保持資料不變再試，系統會使用同一送單識別碼；也可聯絡門市確認。' : '網路異常，無法確認訂單是否已送出。請先用「訂單查詢」或聯絡門市確認，避免重複下單。')
       : e.message;
     err.classList.remove('hidden');
   } finally {

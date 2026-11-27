@@ -1,137 +1,59 @@
 # 煎福鍋貼專賣 · 品牌官網 PWA
 
-極簡現代風的鍋貼店單頁式官網，含線上點餐、購物車、結帳、冷凍禮盒、門市資訊、FAQ，
-並以 **Google Apps Script + Google Sheet** 作為訂單後端，附即時訂單管理看板。
-純靜態、免建置，可直接部署到 GitHub Pages。
+靜態單頁網站，包含線上點餐、購物車、結帳、冷凍禮盒、門市、訂單查詢、3D 行人店面及 PWA。
 
-## 專案結構
+## 網站與目前接單服務
 
-```
-.
-├── index.html            前台官網（Tailwind CDN + Vanilla JS，單檔）
-├── admin.html            訂單管理看板（需 ADMIN_KEY 登入）
-├── manifest.webmanifest  PWA 設定
-├── sw.js                 Service Worker（離線快取）
-├── icons/                PWA 圖示（真實鍋貼照片＋發光效果）
-├── gas/Code.gs           Google Apps Script 後端（貼到試算表的 Apps Script）
-└── .nojekyll             讓 GitHub Pages 原樣提供檔案
-```
+[GitHub Pages](https://theothersideofparadise.github.io/gyoza-website/)。本環境網路政策禁止存取此網域，未直接驗證正式 HTTP 部署。
 
-## 〇、訂單後端已改為 Supabase（前台）
+目前 `assets/order-config.js` 仍設定 `provider: 'supabase'`，沿用 Supabase Edge Functions。**任務十的 Google Sheet 與 GAS 程式已備妥，尚待 Google 帳號本人發布 `/exec` 網址及實測，再切換 GAS。** 不會同時送往兩個後端。
 
-前台 `index.html` 的**送單與訂單查詢**已改為呼叫 Supabase Edge Functions，不再寫入 Google Sheet：
+完整部署及驗收流程請看 [gas/README.md](gas/README.md)。[任務十試算表](https://docs.google.com/spreadsheets/d/1y2nbETPg9Xk-Xf9b_2cX7HbM59yeIGMk4lnrdCKQpR0/edit) 已建立 3 個分頁及 19 項商品；不是已上線的 GAS 接單證明。
 
-| 功能 | 網址 | 送出內容 |
-|---|---|---|
-| 建立訂單（create-order） | `https://wbccrjibekqsygappslb.supabase.co/functions/v1/super-worker` | `{mode,name,phone,email,store_id,address,note,hp,items:[{id,qty}]}` |
-| 查詢訂單（get-order） | `https://wbccrjibekqsygappslb.supabase.co/functions/v1/get-order` | `{order_no}` |
+## 檔案
 
-- 金額、訂單編號由資料庫計算與產生，網站只顯示後端回傳的 `order_no`、`total`、`eta`。
-- 函式開啟 Verify JWT，網站以 `index.html` 的 `SUPABASE_ANON_KEY` 常數帶上 anon（public）key。
-  anon key 是公開金鑰，可放前端並提交；**service_role / secret key 絕不可寫進任何前端檔案或提交到 Git。**
-  GitHub Pages 是純靜態網站，瀏覽器讀不到 `.env`，所以設定值直接寫在 `index.html`。
-- 商品與門市 ID（`s1`…`g3`、`flag`/`xinyi`/`taichung`）必須存在於 Supabase 的 `products`、`stores` 且 `is_active = true`
-  （由 `supabase/seed.sql` 匯入）。
-- 選擇性:在函式的 Secrets 設 `ALLOWED_ORIGINS`，只寫 origin（不含路徑），例如
-  `http://localhost:8000,https://<你的帳號>.github.io`。未設定時允許任何來源。
-- ⚠️ 查單只憑訂單編號，沒有驗證查詢者身分或訂單所有權；編號有規律可被猜測，目前也沒有流量限制。
-- **尚未切換**:`admin.html` 管理看板仍讀寫 Google Sheet（看不到 Supabase 的新訂單）；新訂單 Email 通知（原 `notify_`）
-  尚未在 Supabase 實作；Google Sheet 歷史訂單未搬移。`gas/Code.gs` 保留供參考與後台使用。
+| 檔案 | 用途 |
+|---|---|
+| index.html | 前台與商品、購物車、結帳介面 |
+| assets/order-config.js | 公開後端選擇與 GAS 部署網址 |
+| assets/order-client.js | Supabase/GAS 轉接、可讀回應驗證、GAS 重試識別 |
+| gas/Code.gs / appsscript.json | Google Apps Script 後端及設定 |
+| admin.html | 舊 GAS 後台；ADMIN_KEY 僅放指令碼屬性及登入欄 |
+| supabase/ | 原後端 schema、seed、Edge Functions，切換前保留使用 |
+| assets/street-3d.js | Three.js 3D 場景及播放控制，2D 備援在 index.html |
+| manifest.webmanifest / sw.js | PWA 與離線 app shell；不快取訂單 API 或後台 |
+| icons/ | image_gen 生成的真實 PNG 與縮放圖示 |
 
-## 一、部署後端（Google Sheet + Apps Script，目前僅 admin.html 使用）
+Supabase 金額及編號由後端計算。前台 anon key 是公開金鑰，**service_role、Google token、ADMIN_KEY 等私人憑證不可放前台或提交 repo**。admin.html 僅連 GAS，尚未切換時看不到 Supabase 新訂單；歷史資料不會自動遷移。
 
-1. 建立新的 Google 試算表 → **擴充功能 → Apps Script**。
-2. 把 `gas/Code.gs` 全部貼上並存檔。
-3. 修改 `CONFIG`：
-   - `ADMIN_KEY`：後台登入金鑰，請設一組長且隨機的字串（**不要提交到 GitHub**，只存在你的 Apps Script 裡）。
-   - `OWNER_EMAIL`：收新訂單通知的信箱（可留空）。
-4. 在編輯器選函式 `setup` → 執行並授權（建立「訂單」「訂單明細」「商品」工作表）。
-5. **部署 → 新增部署作業 → 網頁應用程式**：執行身分「我」、存取權「所有人」。複製 `/exec` 網址。
-6. 之後修改 Code.gs 要用「管理部署作業 → 編輯 → 新版本」重新部署，網址不變。
-
-驗證：瀏覽器開啟 `/exec` 網址，應看到 `{"ok":true,...}`。
-
-## 二、連接前台
-
-編輯 `index.html`，把你的 `/exec` 網址填入：
-
-```js
-const GAS_URL = 'https://script.google.com/macros/s/xxxx/exec';
-```
-
-`GAS_URL` 留空時為示範模式（訂單編號結尾 `-DEMO`，不會寫入試算表）。
-此網址本身是公開端點，可放在前端；後台操作則需 ADMIN_KEY。
-
-### 訂單查詢
-
-前台導覽列的「訂單查詢」讓顧客輸入訂單編號,查看品項、金額、狀態與更新時間,並可按「重新查詢」取得最新狀態。
-- 後端公開動作 `track` 只回傳品項/金額/狀態/時間,不含姓名、手機、地址。
-- 「訂單」工作表第 14 欄為 **更新時間**(下單與後台改狀態時自動寫入);舊訂單此欄為空,顯示建立時間。
-- 升級既有部署:更新 `Code.gs`、在「訂單」工作表 N1 補上標題「更新時間」(或重跑 `setup()`;它會重設「商品」工作表,自訂過價格請先備份),再「管理部署作業 → 編輯 → 新版本」重新部署。
-
-## 三、發佈到 GitHub Pages
-
-```bash
-git init
-git add .
-git commit -m "init: 煎福鍋貼官網"
-git branch -M main
-git remote add origin https://github.com/<你的帳號>/<repo>.git
-git push -u origin main
-```
-
-GitHub 專案頁 → **Settings → Pages → Build and deployment**：Source 選 *Deploy from a branch*，
-Branch 選 `main` / `/ (root)` → Save。約 1 分鐘後網址為
-`https://<你的帳號>.github.io/<repo>/`。
-
-- 前台：`.../index.html`（或根網址）
-- 後台：`.../admin.html`，輸入 `/exec` 網址與 `ADMIN_KEY`
-
-### 本機預覽
-
-Service Worker 與 PWA 安裝需要 http(s)，不能用 `file://`：
-
-```bash
-python -m http.server 8080
-```
-
-開啟 http://localhost:8080 。
-
-## 注意事項
-
-- **更新後看不到新版**：到瀏覽器開發人員工具 → Application → Service Workers → Unregister，並清除網站資料；或修改 `sw.js` 的 `CACHE` 版本號。
-- **新增商品**：前台 `MENU`/`GIFTS` 與「商品」工作表的 ID、價格要一致，否則下單會被拒絕。金額以試算表為準。
-- **安全**：金額由後端重算；後台走 POST + ADMIN_KEY；請勿把 ADMIN_KEY 寫進 repo。管理頁已加 `noindex`，但仍建議 repo 設為 Private，或使用自訂網域。
-- **寄信額度**：免費 Gmail 每日約 100 封。
-
-## 圖片與授權
-
-- 菜單與部分圖片來自 [Unsplash](https://unsplash.com)（依 Unsplash License 使用），示範用途；正式上線請換成自家拍攝的照片。
-- PWA 圖示由 image_gen 影像工具於 2026-11-27 生成寫實鍋貼 PNG，原圖保留於 `icons/gyoza-generated-source.png`，另輸出標準、maskable 與 Apple touch 圖示。
-- 店名「煎福」、地址、電話、價格皆為虛構的示範資料。
-
-## 技術
-
-Tailwind CSS (CDN) · Lucide Icons (CDN) · Vanilla JS · Google Apps Script · Service Worker
-
-
-## 任務五至九（2026-11-27）
-
-- 首頁海報：使用教材指定的 postimg 網址；外部海報與餐點照片需要連線，離線時保留底色及替代文字。
-- 2D 進店動畫里程碑：Git 標籤 `milestone/task-7-2d`，可獨立檢查任務七。
-- 3D：本地 Three.js WebGL 店面與行人，含進店路徑；無 WebGL 時保留 2D。減少動態偏好顯示靜態場景，離開可視區或切換分頁會暫停。
-- PWA：本地 CSS、Lucide、Three.js、圖示與 app shell 可離線載入。訂單 API 與後台不進入快取，送出訂單仍需要網路。
-- 影像來源與驗收限制詳見 [驗收紀錄](docs/tasks-5-9-verification.md)。
-
-### 重建樣式與瀏覽器驗證
+## 本機開發與檢查
 
 ```bash
 npm ci
 npm run build:css
 python -m http.server 3000
-# 另一個終端機；先以 npx playwright install chromium 安裝測試瀏覽器
+# 另一終端機，安裝 Playwright Chromium 後執行
+npx playwright install chromium
+npm test
 npm run test:smoke
-# 使用系統 Chromium 時：CHROMIUM_PATH=/usr/bin/chromium npm run test:smoke
+npm run test:motion
+npm run test:pwa
+npm run test:checkout
 ```
 
-手機請在正式 HTTPS 網站操作：iPhone 用 Safari「分享 → 加入主畫面」；Android 用 Chrome 選單「安裝應用程式／加入主畫面」。實機安裝與主畫面圖示需使用者親自確認。
+使用系統 Chromium 可在瀏覽器測試命令前加 `CHROMIUM_PATH=/usr/bin/chromium`。以 `TEST_URL=http://localhost:3001/gyoza-website/` 等值測試子目錄。`test:checkout` 是模擬 GAS 的契約測試，不會建立真實 Google 訂單。
+
+## 任務五至九
+
+- 海報使用教材指定 postimg 網址；外部照片需要連線。本環境不能確認其實際載入。
+- 任務七 2D 進店里程碑：`milestone/task-7-2d`。
+- 任務八 3D 模式支援播放／暫停；預設尊重減少動態偏好，離開可視區或切換分頁暫停。
+- 任務九圖示於 2026-11-27 由 image_gen 產生寫實發光鍋貼 PNG，原圖 `icons/gyoza-generated-source.png`。非 SVG 改副檔名。
+- CSS、Lucide、Three.js 及圖示本地提供，離線可重啟介面；送單仍需連線。
+- [完整驗收紀錄](docs/tasks-5-9-verification.md)。實體手機加入主畫面尚需本人驗收：iPhone Safari「分享 → 加入主畫面」；Android Chrome「安裝應用程式／加入主畫面」。
+
+## 發布與資料
+
+GitHub Settings → Pages → Deploy from branch → main / root。修改本地樣式後重建 `assets/site.css`；更新 PWA 資源時同步更新 sw.js 快取版本，後端路由設定亦更新 script URL 版本。
+
+店名、地址及門市資料是示範資料。部分餐點照片來自 Unsplash；正式使用可更換自家照片。既有 Supabase 設定與 GAS 的商品 ID 需和前台一致，價格以後端為準。
