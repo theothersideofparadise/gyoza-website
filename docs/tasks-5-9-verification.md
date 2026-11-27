@@ -38,3 +38,11 @@
 - 環境網路政策拒絕 i.postimg.cc、正式 Pages 網域及原有外部照片／字型主機；申請補充授權回覆「The published configuration does not allow this network access」。因此已更新指定圖片網址，但無法在本環境確認來源圖片實際載入；不可把這個限制說成海報網址失效。
 - 預期 GitHub Pages 網址為 https://theothersideofparadise.github.io/gyoza-website/ 。本環境無法直接取得其 HTTP 回應，故未宣稱正式部署已驗證。
 - 真正 iPhone / Android 的「加入主畫面」、桌面圖示與 standalone 開啟仍需使用者用實體手機驗收。離線無法送出訂單；外部照片沒有列入離線保證。
+
+## 3D 播放控制修正（2026-11-27）
+
+使用者回報電腦版 `#story` 可看到立體場景但不動。本機相同錨點在一般動態設定下持續播放；`prefers-reduced-motion: reduce` 下可重現靜止，原版沒有提供播放入口。尚未直接讀取使用者電腦設定，因此不斷言這是其個別裝置的確定原因。
+
+新增播放／暫停控制與狀態說明，保留預設尊重系統偏好，使用者明確按下播放後即可播放。PWA 快取升級 v6，3D script URL 也加上版本，避免新頁面使用舊的快取程式。
+
+`npm run test:motion` 已先在修正前失敗（缺少播放按鈕），修正後通過：一般設定自動播放、減少動態預設靜止、按播放後畫面移動、按暫停後畫面固定。測試使用 `#story` 錨點進入。原 smoke 與 PWA 安裝資格測試另行重跑。

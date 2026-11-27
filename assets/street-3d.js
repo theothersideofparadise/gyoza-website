@@ -66,6 +66,18 @@
     people.push({ group, limbs, phase: i / 15, duration: 16 + i % 5, entering: i % 3 === 0, direction: i % 2 ? -1 : 1 });
   }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  // Follow the system preference until the visitor explicitly chooses to play or pause.
+  let userPaused = null;
+  const isPaused = () => userPaused ?? reduced.matches;
+  const controls = document.querySelector('#streetMotionControls');
+  const toggle = document.querySelector('#streetMotionToggle');
+  const status = document.querySelector('#streetMotionStatus');
+  function updateControls() {
+    if (toggle) toggle.textContent = isPaused() ? '播放動畫' : '暫停動畫';
+    if (status) status.textContent = isPaused()
+      ? (userPaused === null && reduced.matches ? '已依系統設定減少動態效果' : '動畫已暫停')
+      : '動畫播放中';
+  }
   let visible = false, elapsed = 0, last = 0, frame = 0, failed = false;
   function resize() {
     const w = host.clientWidth, h = host.clientHeight;
@@ -85,27 +97,29 @@
         p.group.rotation.y = t < .65 ? Math.PI / 2 : Math.PI;
       } else { x = (-12 + t * 24) * p.direction; p.group.rotation.y = p.direction * Math.PI / 2; }
       p.group.position.set(x, Math.abs(Math.sin(t * 100)) * .025, z);
-      p.limbs.forEach((limb, i) => limb.rotation.x = reduced.matches ? 0 : Math.sin(t * 100) * .45 * (i < 2 ? 1 : -1) * (i % 2 ? -1 : 1));
+      p.limbs.forEach((limb, i) => limb.rotation.x = isPaused() ? 0 : Math.sin(t * 100) * .45 * (i < 2 ? 1 : -1) * (i % 2 ? -1 : 1));
     }
     renderer.render(scene, camera);
   }
   function tick(now) {
     frame = 0;
-    if (!visible || document.hidden || reduced.matches || failed) { last = 0; return; }
+    if (!visible || document.hidden || isPaused() || failed) { last = 0; return; }
     if (last) elapsed += Math.min((now - last) / 1000, .05);
     last = now; render(); frame = requestAnimationFrame(tick);
   }
   function resume() {
     if (frame) cancelAnimationFrame(frame); frame = 0; last = 0;
-    render(); if (visible && !document.hidden && !reduced.matches && !failed) frame = requestAnimationFrame(tick);
+    updateControls(); render(); if (visible && !document.hidden && !isPaused() && !failed) frame = requestAnimationFrame(tick);
   }
   renderer.domElement.addEventListener('webglcontextlost', e => {
-    e.preventDefault(); failed = true; cancelAnimationFrame(frame); host.hidden = true;
+    e.preventDefault(); failed = true; if (controls) controls.hidden = true; cancelAnimationFrame(frame); host.hidden = true;
     document.querySelector('#street').hidden = false;
   });
   new ResizeObserver(resize).observe(host);
   new IntersectionObserver(entries => { visible = entries[0].isIntersecting; resume(); }).observe(host);
-  reduced.addEventListener('change', resume); document.addEventListener('visibilitychange', resume);
+  if (toggle) toggle.addEventListener('click', () => { userPaused = !isPaused(); resume(); });
+  reduced.addEventListener('change', () => { userPaused = null; resume(); }); document.addEventListener('visibilitychange', resume);
   host.hidden = false; document.querySelector('#street').hidden = true;
-  host.dataset.engine = 'webgl'; resize();
+  if (controls) controls.hidden = false;
+  updateControls(); host.dataset.engine = 'webgl'; resize();
 })();

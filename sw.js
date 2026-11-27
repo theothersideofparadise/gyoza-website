@@ -1,8 +1,8 @@
 /* Versioned local app shell. Orders and admin data are never cached. */
 const PREFIX = 'jianfu-gyoza-';
-const CACHE = PREFIX + 'v5';
+const CACHE = PREFIX + 'v6';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './assets/site.css',
-  './assets/vendor/lucide.min.js', './assets/vendor/three.min.js', './assets/street-3d.js',
+  './assets/vendor/lucide.min.js', './assets/vendor/three.min.js', './assets/street-3d.js?v=6',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 self.addEventListener('install', event => {
