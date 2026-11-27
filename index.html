@@ -77,6 +77,13 @@
   .walker { position: absolute; left: 0; will-change: transform; animation: walkAcross linear infinite; }
   @keyframes walkAcross { from { transform: translateX(-90px); } to { transform: translateX(calc(100vw + 90px)); } }
   .walker.rev { animation-name: walkBack; }
+  .walker.entering { animation-name: walkIntoStore; }
+  @keyframes walkIntoStore {
+    0% { transform: translateX(-90px); opacity: 1; }
+    45% { transform: translateX(calc(50vw - 20px)); opacity: 1; }
+    60% { transform: translateX(calc(50vw - 20px)) translateY(-32px) scale(.35); opacity: 0; }
+    100% { transform: translateX(calc(50vw - 20px)) translateY(-32px) scale(.35); opacity: 0; }
+  }
   @keyframes walkBack { from { transform: translateX(calc(100vw + 90px)); } to { transform: translateX(-90px); } }
   .walker .bob { animation: bob var(--step, .6s) ease-in-out infinite; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
@@ -1016,7 +1023,7 @@ function buildCrowd() {
     const bag = Math.random() < .45
       ? `<rect x="${rev ? 3 : 29}" y="46" width="9" height="12" rx="2" fill="${pick(['#e07a22', '#fffaf2', '#4a2e1a'])}"/>` : '';
     const dim = depth < .7 ? 'filter:brightness(.75);' : '';
-    html += `<div class="walker${rev ? ' rev' : ''}" style="bottom:${bottom}px;z-index:${Math.round(depth * 10)};animation-duration:${dur}s;animation-delay:${delay}s;${dim}">
+    html += `<div class="walker${i % 3 === 0 ? ' entering' : (rev ? ' rev' : '')}" style="bottom:${bottom}px;z-index:${Math.round(depth * 10)};animation-duration:${dur}s;animation-delay:${delay}s;${dim}">
       <div style="transform:scale(${scale * flip},${scale});transform-origin:50% 100%">
         <div class="bob" style="--step:${step}">
           <svg width="40" height="90" viewBox="0 0 40 90">
